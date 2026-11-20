@@ -54,4 +54,25 @@
      - **Middleware 命名變更**：專案使用 Next.js `16.4.6`，將傳統 `src/middleware.ts` 調整為新版規範 `src/proxy.ts`（匯出 `proxy` 函式），避免棄用警告。
      - **解決 `Blocking Route` 預渲染錯誤**：`/dashboard` 執行時觸發 `Next.js encountered the unstable value Date.now() while prerendering`，主因為 `@supabase/ssr` 底層 `GoTrueClient` 在宣告動態請求前即呼叫 `Date.now()`。最終於 `src/app/dashboard/page.tsx` 導入 `next/server` 的 `await connection()` 並以 `<Suspense>` 包覆非同步內容，成功排除錯誤。
 
-     
+
+---
+
+## Checkpoint 3：Threads 爬蟲與 Mock Fallback 模組（Branch: `feat/threads-crawler`）
+- **記錄重點**：
+  1. **高擬真 Fallback Mock Dataset（`data/mock_threads_posts.json`）**：
+     - 建置 30 篇繁體中文 Threads 貼文樣本（高、中、低互動三群組各 10 篇，總互動數分布為 `635–1,588`、`141–286`、`13–48`），涵蓋不同發文時間、字數長度、問句互動、純文字／圖片／輪播標記及 `view_count: null` 案例。
+     - 欄位結構完全對齊 `public.posts` 資料表，並刻意排除資料庫自動計算之 `total_engagement` Generated Column。
+  2. **Playwright 爬蟲與工具模組（`src/lib/crawler/`）**：
+     - `types.ts` / `utils.ts`：定義對齊 `threads_accounts`、`analysis_tasks`、`posts` 的 TypeScript 介面與 `ThreadsCrawlerError`；實作帳號正規化（相容 `username`、`@username`、`threads.net` 與 `threads.com`）、文字特徵抽取、簡寫數字解析（`K`/`M`/`萬`）、隨機延遲、貼文去重與 `toSupabasePostInsertRows()` 轉換。
+     - `threadsScraper.ts`：採用動態 `import("playwright")` 啟動無頭 Chromium，攔截字型與影音請求加速載入；加入隨機滾動幅度與延遲防封鎖，並讀取 `PLAYWRIGHT_TIMEOUT_MS` 控管整體爬取逾時，同時偵測登入牆（`LOGIN_WALL`）、反爬蟲挑戰（`ANTI_BOT_BLOCKED`）與私人／不存在帳號（`ACCOUNT_NOT_FOUND`）。
+     - `index.ts`：實作自動降級封裝層 `crawlThreadsPosts()`；當 `ENABLE_MOCK_FALLBACK="true"` 時直接回傳 Mock 資料，設為 `"false"` 時則優先以 Playwright 爬取，遇任何阻擋或異常自動深拷貝並切換回傳 `data/mock_threads_posts.json`，同時回傳 `data_source`、`is_fallback_used`、`fallback_reason` 供寫入 `analysis_tasks`。
+     - `scripts/test-crawler.ts`：建立本地煙霧測試腳本，完成 Mock 模式與 Playwright 真實爬取／自動降級兩組情境驗證。
+  3. **除錯與相容性修正紀錄**：
+     - **Playwright 瀏覽器安裝指令修正**：執行 `npx exec playwright install chromium` 出現 `could not determine executable to run`，修正為 `npx playwright install chromium`。
+     - **PowerShell `@` 參數展開錯誤**：傳入 `@taipei_pm_notes`／`@zuck` 未加引號時被 PowerShell 誤判為 Splatting 變數展開，改以雙引號包覆（`"@zuck"`）解決。
+     - **強化錯誤降級型別判斷**：修復測試 B 觸發 `TypeError: Right-hand side of 'instanceof' is not an object` 問題，確保 `types.ts` 匯出 `ThreadsCrawlerError` 並於 `index.ts` 改以結構化守衛函式 `isCrawlerErrorLike()` 取代單純 `instanceof`，確保降級保護絕不中斷。
+     - **語法修復**：修正手動調整 `catch` 區塊時遺漏函式大括號導致的 esbuild `Unexpected "export"` 編譯錯誤。
+  4. **產出檔案**：
+     - `data/mock_threads_posts.json`
+     - `src/lib/crawler/types.ts`、`src/lib/crawler/utils.ts`、`src/lib/crawler/threadsScraper.ts`、`src/lib/crawler/index.ts`
+     - `scripts/test-crawler.ts`
