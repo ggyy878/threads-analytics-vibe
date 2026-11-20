@@ -101,3 +101,4 @@ docker run -p 3000:3000 --env-file .env.local threads-analyzer
 3. **速率限制 (Rate Limit)**：短時間內頻繁對單一帳號發起爬取可能觸發平台防護，系統已實作快取與 Retry 機制予以緩解。
 4. **快取以使用者為隔離單位 (Per-User Cache)**：基於 RLS 嚴格資料隔離原則，不同登入帳號對同一 Threads 帳號的快取彼此獨立，無法跨使用者共享爬取結果（預設效期由 `SCRAPER_CACHE_TTL_HOURS` 控制）。
 5. **歷史快照儲存與 Service Role 依賴**：貼文去重約束設於單一分析任務內（`(task_id, post_url)`），同一帳號於快取過期後重新分析會保留歷史版本快照；此外，後端批次寫入或執行 Seed 腳本時須透過 `SUPABASE_SERVICE_ROLE_KEY` 執行。
+6. **信箱驗證設定限制**：若 Supabase 專案後台啟用「Confirm email」，需於 Supabase Authentication 的 Redirect URLs 加入 `${NEXT_PUBLIC_SITE_URL}/auth/callback`；本地快速測試時建議先關閉 Confirm email 或直接使用預置測試帳號登入。

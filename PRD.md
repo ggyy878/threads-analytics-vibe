@@ -18,8 +18,9 @@
   - 呈現總覽指標、Top posts 表格、至少 2 張圖表 (Recharts)、內容策略觀察與 LLM 建議。
   - **多帳號比較**：支援使用者同時勾選已分析過的 2 個以上不同帳號進行數據並排對比。
 - **使用者認證與權限 (Task 6)**：
-  - 支援 Supabase Auth (Email / Password 或 Magic Link)，未登入不可查看 Dashboard。
-  - **測試便利性**：提供 Seed Data 與預置測試帳號，方便評審快速登入體驗。
+  - 採用 Supabase Auth（`@supabase/ssr`）實作 **Email / Password 註冊、登入、登出** 與信箱驗證回調（`/auth/callback`）。
+  - **雙向路由保護**：未登入不可查看 `/dashboard`（自動重導向 `/login`）；已登入訪問 `/login` 自動導向 `/dashboard`。
+  - **測試便利性**：提供 Seed Data 與預置測試帳號（將於 Seed Data 階段補齊），方便評審快速登入體驗。
 
 ## 3. 使用者流程 (User Flow)
 1. 進入系統 → 2. 登入（支援測試帳號） → 3. 輸入 Threads 帳號發起分析任務（具備快取檢查避免重複爬取） → 4. 檢視資料儀表板、圖表、NLP 成敗分析與 AI 策略建議 → 5. 進行多帳號比較或匯出 CSV / JSON。

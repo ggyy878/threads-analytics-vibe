@@ -37,3 +37,21 @@
      - *(若本地或 Supabase SQL Editor 執行 Migration 時有遇到其他報錯，可於合併前補充於此)*
   5. **產出檔案**：
      - `supabase/migrations/20261120000000_init_schema.sql`
+
+     ---
+
+## Checkpoint 2：使用者認證模組（Branch: `feat/auth`）
+- **記錄重點**：
+  1. **技術選型與架構設計**：
+     - 採用官方推薦套件 `@supabase/ssr` 與 `@supabase/supabase-js`，建立瀏覽器端（`src/utils/supabase/client.ts`）、伺服器端（`src/utils/supabase/server.ts`）與 Session 刷新邏輯（`src/utils/supabase/middleware.ts`）。
+     - 使用 Next.js Server Actions（`src/app/login/actions.ts`）處理 Email + Password 註冊、登入與登出流程，並將常見 Supabase 錯誤訊息轉譯為繁體中文提示。
+     - 新增 `/auth/callback`（`src/app/auth/callback/route.ts`）處理註冊信箱驗證後的 `exchangeCodeForSession`。
+     - 於路由層與 Server Component 層皆透過 `supabase.auth.getUser()` 進行雙重驗證，確保 Session 安全性。
+  2. **路由保護與 UI 實作**：
+     - 實作雙向路由保護：未登入訪問 `/dashboard` 自動導向 `/login`；已登入訪問 `/login` 自動導向 `/dashboard`。
+     - 建立登入/註冊切換介面（`src/app/login/page.tsx`）、登出按鈕元件（`src/components/SignOutButton.tsx`）與受保護的 `/dashboard` 基礎頁面（`src/app/dashboard/page.tsx`），包含 `useTransition` Loading 狀態。
+  3. **除錯與 Next.js 16 相容性修正紀錄**：
+     - **Middleware 命名變更**：專案使用 Next.js `16.4.6`，將傳統 `src/middleware.ts` 調整為新版規範 `src/proxy.ts`（匯出 `proxy` 函式），避免棄用警告。
+     - **解決 `Blocking Route` 預渲染錯誤**：`/dashboard` 執行時觸發 `Next.js encountered the unstable value Date.now() while prerendering`，主因為 `@supabase/ssr` 底層 `GoTrueClient` 在宣告動態請求前即呼叫 `Date.now()`。最終於 `src/app/dashboard/page.tsx` 導入 `next/server` 的 `await connection()` 並以 `<Suspense>` 包覆非同步內容，成功排除錯誤。
+
+     
