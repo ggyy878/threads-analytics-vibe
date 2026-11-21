@@ -1,0 +1,462 @@
+{
+  "task_id": "44f70c93-dbe3-4c9e-8500-26bded737b71",
+  "generated_at": "2026-11-21T10:32:28.319Z",
+  "data_source": "mock_fallback",
+  "account": {
+    "username": "ai_builder_tw",
+    "profile_url": "https://www.threads.net/@ai_builder_tw",
+    "display_name": "ai_builder_tw（Fallback 示範資料）",
+    "bio": "科技業 AI 產品經理｜記錄 Side Project、職場溝通與 Threads 數據實驗",
+    "follower_count": 20276
+  },
+  "metrics": {
+    "total_posts": 30,
+    "total_likes": 11848,
+    "total_replies": 2334,
+    "total_reposts": 1868,
+    "total_quotes": 638,
+    "total_engagement": 16688,
+    "avg_engagement": 556.27,
+    "median_engagement": 289.5,
+    "avg_char_count": 101.77,
+    "duplicate_removed_count": 0
+  },
+  "chart_snapshots": {
+    "hourly_distribution": [
+      {
+        "hour": 0,
+        "label": "00:00",
+        "post_count": 0,
+        "avg_engagement": 0
+      },
+      {
+        "hour": 1,
+        "label": "01:00",
+        "post_count": 2,
+        "avg_engagement": 42.5
+      },
+      {
+        "hour": 2,
+        "label": "02:00",
+        "post_count": 3,
+        "avg_engagement": 43
+      },
+      {
+        "hour": 3,
+        "label": "03:00",
+        "post_count": 2,
+        "avg_engagement": 46
+      },
+      {
+        "hour": 4,
+        "label": "04:00",
+        "post_count": 1,
+        "avg_engagement": 45
+      },
+      {
+        "hour": 5,
+        "label": "05:00",
+        "post_count": 1,
+        "avg_engagement": 24
+      },
+      {
+        "hour": 6,
+        "label": "06:00",
+        "post_count": 1,
+        "avg_engagement": 53
+      },
+      {
+        "hour": 7,
+        "label": "07:00",
+        "post_count": 0,
+        "avg_engagement": 0
+      },
+      {
+        "hour": 8,
+        "label": "08:00",
+        "post_count": 0,
+        "avg_engagement": 0
+      },
+      {
+        "hour": 9,
+        "label": "09:00",
+        "post_count": 1,
+        "avg_engagement": 392
+      },
+      {
+        "hour": 10,
+        "label": "10:00",
+        "post_count": 0,
+        "avg_engagement": 0
+      },
+      {
+        "hour": 11,
+        "label": "11:00",
+        "post_count": 1,
+        "avg_engagement": 225
+      },
+      {
+        "hour": 12,
+        "label": "12:00",
+        "post_count": 3,
+        "avg_engagement": 884
+      },
+      {
+        "hour": 13,
+        "label": "13:00",
+        "post_count": 0,
+        "avg_engagement": 0
+      },
+      {
+        "hour": 14,
+        "label": "14:00",
+        "post_count": 1,
+        "avg_engagement": 268
+      },
+      {
+        "hour": 15,
+        "label": "15:00",
+        "post_count": 1,
+        "avg_engagement": 356
+      },
+      {
+        "hour": 16,
+        "label": "16:00",
+        "post_count": 2,
+        "avg_engagement": 288.5
+      },
+      {
+        "hour": 17,
+        "label": "17:00",
+        "post_count": 2,
+        "avg_engagement": 288
+      },
+      {
+        "hour": 18,
+        "label": "18:00",
+        "post_count": 0,
+        "avg_engagement": 0
+      },
+      {
+        "hour": 19,
+        "label": "19:00",
+        "post_count": 1,
+        "avg_engagement": 285
+      },
+      {
+        "hour": 20,
+        "label": "20:00",
+        "post_count": 3,
+        "avg_engagement": 1269.67
+      },
+      {
+        "hour": 21,
+        "label": "21:00",
+        "post_count": 4,
+        "avg_engagement": 1507.75
+      },
+      {
+        "hour": 22,
+        "label": "22:00",
+        "post_count": 1,
+        "avg_engagement": 1089
+      },
+      {
+        "hour": 23,
+        "label": "23:00",
+        "post_count": 0,
+        "avg_engagement": 0
+      }
+    ],
+    "time_slot_distribution": [
+      {
+        "slot": "凌晨 (00-05)",
+        "post_count": 9,
+        "avg_engagement": 41.67
+      },
+      {
+        "slot": "上午 (06-11)",
+        "post_count": 3,
+        "avg_engagement": 223.33
+      },
+      {
+        "slot": "下午 (12-17)",
+        "post_count": 9,
+        "avg_engagement": 492.11
+      },
+      {
+        "slot": "晚間 (18-23)",
+        "post_count": 9,
+        "avg_engagement": 1246
+      }
+    ],
+    "weekday_distribution": [
+      {
+        "weekday": "週一",
+        "post_count": 7,
+        "avg_engagement": 290.29
+      },
+      {
+        "weekday": "週二",
+        "post_count": 4,
+        "avg_engagement": 779.25
+      },
+      {
+        "weekday": "週三",
+        "post_count": 4,
+        "avg_engagement": 616.5
+      },
+      {
+        "weekday": "週四",
+        "post_count": 5,
+        "avg_engagement": 585.8
+      },
+      {
+        "weekday": "週五",
+        "post_count": 5,
+        "avg_engagement": 586.2
+      },
+      {
+        "weekday": "週六",
+        "post_count": 2,
+        "avg_engagement": 624.5
+      },
+      {
+        "weekday": "週日",
+        "post_count": 3,
+        "avg_engagement": 654.67
+      }
+    ],
+    "feature_comparison": {
+      "with_question": {
+        "count": 13,
+        "avg_engagement": 1090.15
+      },
+      "without_question": {
+        "count": 17,
+        "avg_engagement": 148
+      },
+      "with_media": {
+        "count": 11,
+        "avg_engagement": 767.09
+      },
+      "text_only": {
+        "count": 19,
+        "avg_engagement": 434.21
+      }
+    },
+    "length_buckets": [
+      {
+        "bucket": "短文 (≤50字)",
+        "post_count": 6,
+        "avg_engagement": 40.83
+      },
+      {
+        "bucket": "中短文 (51-120字)",
+        "post_count": 14,
+        "avg_engagement": 359.29
+      },
+      {
+        "bucket": "中長文 (121-250字)",
+        "post_count": 10,
+        "avg_engagement": 1141.3
+      },
+      {
+        "bucket": "長文 (>250字)",
+        "post_count": 0,
+        "avg_engagement": 0
+      }
+    ]
+  },
+  "high_tier_threshold": 824,
+  "low_tier_threshold": 71,
+  "tier_summary": {
+    "high": {
+      "tier": "high",
+      "label": "高表現 (Top)",
+      "count": 10,
+      "percentage": 33.3,
+      "min_engagement": 824,
+      "max_engagement": 2202,
+      "avg_engagement": 1328.7,
+      "median_engagement": 1171.5,
+      "avg_likes": 925.9,
+      "avg_replies": 191.6,
+      "avg_reposts": 155.8,
+      "avg_quotes": 55.4,
+      "avg_char_count": 147.4,
+      "question_rate": 100,
+      "media_rate": 50,
+      "avg_engagement_rate": 4.8,
+      "sample_post_ids": [
+        "C_9xK2mP101",
+        "C_9xK2mP102",
+        "C_9xK2mP103",
+        "C_9xK2mP104"
+      ]
+    },
+    "medium": {
+      "tier": "medium",
+      "label": "中表現 (Mid)",
+      "count": 10,
+      "percentage": 33.3,
+      "min_engagement": 208,
+      "max_engagement": 392,
+      "avg_engagement": 297.3,
+      "median_engagement": 289.5,
+      "avg_likes": 222.1,
+      "avg_replies": 38,
+      "avg_reposts": 29.1,
+      "avg_quotes": 8.1,
+      "avg_char_count": 106.8,
+      "question_rate": 30,
+      "media_rate": 40,
+      "avg_engagement_rate": 3.87,
+      "sample_post_ids": [
+        "C_9xK2mP204",
+        "C_9xK2mP205",
+        "C_9xK2mP206",
+        "C_9xK2mP207"
+      ]
+    },
+    "low": {
+      "tier": "low",
+      "label": "低表現 (Low)",
+      "count": 10,
+      "percentage": 33.3,
+      "min_engagement": 16,
+      "max_engagement": 71,
+      "avg_engagement": 42.8,
+      "median_engagement": 43.5,
+      "avg_likes": 36.8,
+      "avg_replies": 3.8,
+      "avg_reposts": 1.9,
+      "avg_quotes": 0.3,
+      "avg_char_count": 51.1,
+      "question_rate": 0,
+      "media_rate": 20,
+      "avg_engagement_rate": 4.06,
+      "sample_post_ids": [
+        "C_9xK2mP307",
+        "C_9xK2mP308",
+        "C_9xK2mP309",
+        "C_9xK2mP310"
+      ]
+    }
+  },
+  "executive_summary": "本帳號「ai_builder_tw」核心受眾為科技業從業人員與開發者。數據顯示高互動群組平均互動數高達 1,328.7，關鍵在於晚間時段發文、字數適中（約 147 字）、100% 搭配開放式問句與痛點共鳴鉤子。相對地，低互動群組平均僅 42.8，主因在於選在凌晨發文、字數過短（僅 51 字）且缺乏互動引導。未來應全面轉向黃金時段發文，並放大職場痛點與實作經驗分享，以拉高整體帳號影響力。",
+  "success_factors": [
+    {
+      "title": "職場殘酷真相與反常識鉤子",
+      "description": "透過揭露業界鮮少明說的真相或挑戰常見迷思，瞬間抓住目標受眾的眼球，引發強烈的認同感與留言辯論慾望。",
+      "hook_pattern": "面試過 X 位新人後我發現一個殘酷真相：[常見迷思] 人，八成 [盲點]。真正會錄取的只有一種人——[反常識解法]",
+      "evidence_post_ids": [
+        "C_9xK2mP101",
+        "C_9xK2mP102"
+      ],
+      "impact_level": "high"
+    },
+    {
+      "title": "具體乾貨拆解與高回覆問句",
+      "description": "分享個人實際操作的專案經驗（如 Side Project 成本與實作清單），並在結尾拋出強烈的互動問句，驅動高達 15% 以上的回覆比例。",
+      "hook_pattern": "花了整個 [時間] 用 [工具組合] 把腦中想了半年的 [主題] 做出 MVP，成本不到 [金額]。最耗時的根本不是 [A]，而是：[條列乾貨] 大家週末都在搞什麼 Side Project？底下蓋樓互相督促一下！",
+      "evidence_post_ids": [
+        "C_9xK2mP103",
+        "C_9xK2mP104"
+      ],
+      "impact_level": "high"
+    },
+    {
+      "title": "精準掌握晚間與下午黃金發文時段",
+      "description": "高互動貼文多集中在晚間（18-23）與下午（12-17）時段發布，此時台灣職場受眾正處於通勤或下班放鬆期，能有效獲取高觸及與演算法推播。",
+      "hook_pattern": "認真問，台灣科技業現在還有哪間公司是真的 [職場痛點] 嗎？",
+      "evidence_post_ids": [
+        "C_9xK2mP101",
+        "C_9xK2mP103"
+      ],
+      "impact_level": "medium"
+    }
+  ],
+  "failure_factors": [
+    {
+      "title": "深夜時段發文導致觸及與互動潰散",
+      "description": "低表現貼文高達 100% 集中在凌晨（00-05）時段發布，此時段線上活躍用戶極少，導致演算法無法累積初始互動，平均互動僅 41.67。",
+      "evidence_post_ids": [
+        "C_9xK2mP307",
+        "C_9xK2mP308",
+        "C_9xK2mP309",
+        "C_9xK2mP310"
+      ],
+      "impact_level": "high"
+    },
+    {
+      "title": "內文過短缺乏脈絡與討論空間",
+      "description": "低表現群組平均字數僅 51.1 字，內容多為單純的個人情緒呢喃或流水帳，缺乏背景脈絡，無法引起社群共鳴。",
+      "evidence_post_ids": [
+        "C_9xK2mP307",
+        "C_9xK2mP309"
+      ],
+      "impact_level": "high"
+    },
+    {
+      "title": "完全缺乏問句與互動引導機制",
+      "description": "低表現群組的問句比例為 0%，貼文結束時未向讀者拋出任何討論方向或問題，導致受眾看完僅能按讚或直接滑過，無法累積留言數。",
+      "evidence_post_ids": [
+        "C_9xK2mP307",
+        "C_9xK2mP308",
+        "C_9xK2mP310"
+      ],
+      "impact_level": "medium"
+    }
+  ],
+  "content_observations": [
+    {
+      "dimension": "問句引導與互動率",
+      "finding": "高互動群組的問句比例高達 100%，而低互動群組為 0%。有無問句的平均互動數差距達 7.3 倍（1,090.15 vs 148），顯示 Threads 用戶極度偏好具備對話邀請的內容。",
+      "metric_evidence": "with_question avg_engagement: 1090.15 (count: 13) vs without_question avg_engagement: 148 (count: 17)"
+    },
+    {
+      "dimension": "字數與內容結構",
+      "finding": "高表現群組平均字數為 147.4 字，結構多為「痛點 Hook + 實戰乾貨/條列 + 開放式問句」；低表現群組平均僅 51.1 字，呈現零散碎碎念。",
+      "metric_evidence": "High tier avg_char_count: 147.4 vs Low tier avg_char_count: 51.1"
+    },
+    {
+      "dimension": "發文時段與台灣時區分佈",
+      "finding": "晚間（18-23）發文成效最佳，平均互動高達 1246，共 9 篇；而凌晨（00-05）發文成效最差，平均互動僅 41.67，顯示發文時段直接決定貼文生死。",
+      "metric_evidence": "晚間 avg_engagement: 1246 (9 posts) vs 凌晨 avg_engagement: 41.67 (9 posts)"
+    }
+  ],
+  "ai_recommendations": [
+    {
+      "priority": "P0",
+      "title": "全面禁止凌晨發文並建立黃金時段排程機制",
+      "action_steps": [
+        "檢視現有排程工具，將所有深夜發文改期。",
+        "固定安排於台灣時間每週二至週四的 19:00 至 21:00 發布核心乾貨文。"
+      ],
+      "example_hook": "AI 產品經理的血淚體悟：千萬不要在晚上九點才丟需求給工程師...",
+      "expected_impact": "顯著提升貼文初始觸及與平均互動數達 3 倍以上"
+    },
+    {
+      "priority": "P0",
+      "title": "落實「痛點 + 乾貨條列 + 結尾問句」標準化寫作公式",
+      "action_steps": [
+        "每篇貼文開頭必須點出一個職場或開發痛點。",
+        "內文提供 3 個具體可執行的做法或工具心法。",
+        "結尾強制加入互動問句引導粉絲留言。"
+      ],
+      "example_hook": "導入 AI 工具半年後我發現，團隊效率沒變高只是多了一堆垃圾 Code。你們公司也踩過這個坑嗎？",
+      "expected_impact": "提升貼文的回覆率與整體互動率"
+    },
+    {
+      "priority": "P1",
+      "title": "增加個人 Side Project 與實作細節的圖文內容",
+      "action_steps": [
+        "每週分享一次獨立開發的 MVP 成本、踩坑紀錄或架構圖。",
+        "搭配 Carousel（輪播圖）或乾貨截圖增加使用者停留時間。"
+      ],
+      "example_hook": "用 Cursor 獨立開發 AI 產品一個月，這 3 個血淚教訓省下我至少 5 萬塊冤枉錢：",
+      "expected_impact": "提升轉發數（Reposts）與帳號專業度信任感"
+    }
+  ]
+}
