@@ -76,3 +76,31 @@
      - `data/mock_threads_posts.json`
      - `src/lib/crawler/types.ts`、`src/lib/crawler/utils.ts`、`src/lib/crawler/threadsScraper.ts`、`src/lib/crawler/index.ts`
      - `scripts/test-crawler.ts`
+
+---
+
+## Checkpoint 4：資料清理、NLP 成敗分析與後端 API 整合（Branch: `feat/nlp-analysis`）
+- **日期**：2026-11-21
+- **記錄重點**：
+  1. **資料清理與特徵提取模組（`src/lib/analyzer/dataCleaner.ts`）**：
+     - 實作貼文去重邏輯（依 `external_post_id` 與正規化 `post_url` 判重，重複時優先保留互動數較高或內文較完整者）。
+     - 統一時間處理：寫入 Supabase `TIMESTAMPTZ` 維持 ISO 8601 UTC 格式，同時透過 `Intl.DateTimeFormat` 轉換為 `Asia/Taipei` 統計 24 小時、四時段（凌晨／上午／下午／晚間）與星期分布。
+     - 提取基礎文字與互動特徵：`char_count`、`hashtags`、`mentions`、`url_count`、`has_question`（問號與中文疑問詞偵測）、`has_media`、`media_type`、`reply_ratio`，以及互動率（優先採 `view_count`，若為 `null` 則自動改以 `follower_count` 計算），並彙算平均值、中位數與前端繪圖用 `chart_snapshots`。
+  2. **三群組分群與 Gemini Structured Outputs 分析模組（`src/lib/analyzer/nlpAnalyzer.ts`）**：
+     - 依 `total_engagement`（同分依 `reply_count`、`like_count` 次排序）自動劃分為高（`high`）、中（`medium`）、低（`low`）三群組，記錄 `high_tier_threshold` 與 `low_tier_threshold`，每組抽樣代表性貼文（預設 4 篇，上限 3–5 篇）並標記 `is_nlp_sample = true`。
+     - 安裝官方 `@google/genai` SDK，透過 `responseMimeType: 'application/json'` 與嚴格 `responseSchema`（Structured Outputs）產出繁體中文結構化分析：總覽摘要、高表現成功因素與 Hook 句型拆解（附佐證 `post_id`）、低表現成因、跨群組數據觀察、P0–P2 可執行策略建議（含示範 Hook），以及回寫至單篇貼文的 `nlp_post_insights`。
+  3. **後端整合 API 路由與報告輸出（`src/app/api/analyze/route.ts`）**：
+     - 透過 Supabase Server Client 執行 `supabase.auth.getUser()` 驗證登入狀態，未登入回傳 `401`。
+     - 實作帳號層級快取機制：檢查 `SCRAPER_CACHE_TTL_HOURS`（預設 24 小時）內是否已有 `completed` 分析報告，命中時直接回傳既有 `aggregated_reports` 與 `posts`，並於 `analysis_tasks` 補寫 `data_source = 'cache'`、`cache_hit = true` 之稽核紀錄（支援請求帶入 `force_refresh: true` 強制重跑）。
+     - 串接完整非同步分析管線：`crawlThreadsPosts`（含自動 Retry）→ 資料清理與分群 → Gemini NLP 分析 → 寫入 `posts`（避開 PostgreSQL `GENERATED ALWAYS` 之 `total_engagement` 欄位）與 `aggregated_reports` → 更新任務狀態（`scraping` → `analyzing` → `completed` / `failed`）→ 同步輸出 Markdown 與 JSON 報告至 `reports/` 資料夾（於唯讀 Serverless 環境自動降級略過不中斷主流程）。
+  4. **除錯、模型遷移與韌性強化紀錄**：
+     - **Supabase 模組路徑與 TypeScript 型別修正**：修正 AI 初版預設路徑 `@/lib/supabase/server` 為專案實際路徑 `@/utils/supabase/server`；修復報告 Markdown 樣板字串內未跳脫反引號（`` `high_tier_threshold` `` / `` `low_tier_threshold` ``）與 `activeTaskId`（`string | null`）型別收窄問題，改以區域常數 `taskId: string` 傳遞。
+     - **Phase 3 爬蟲模組對接修正**：初次測試回傳 `500`（找不到爬蟲匯出函式）；檢視 `src/lib/crawler/index.ts` 後改為靜態具名匯入 `crawlThreadsPosts(username, { targetPostCount })`，並清除替換過程殘留的舊版轉接程式碼。
+     - **Gemini 模型下線（`404 NOT_FOUND`）遷移**：原規劃呼叫 `gemini-2.5-flash`，實測時 Google API 回傳 `404`（新使用者已無法使用該模型）。依官方回應升級為 `gemini-3.8-flash`（支援 `.env.local` 設定 `GEMINI_MODEL` 覆寫），移除 Gemini 3.x 不建議傳入的 `temperature` 參數，並將 `NOT_FOUND` 列為不重試錯誤。
+     - **尖峰流量 `503 UNAVAILABLE` 與 Serverless 逾時防護**：實測遭遇模型尖峰壅塞 `503`，單一模型重試 3 次耗時達 `68s` 超過 `maxDuration = 60` 上限。後續重構為多模型自動降級鏈（`gemini-3.8-flash` → `gemini-3.6-flash` → `gemini-3.5-flash-lite`）、單次 `18s` 逾時保護（`withTimeout`）與最終統計規則降級兜底（`buildRuleBasedFallbackAnalysis`），並修復重構時遺漏的 `insightByPostId` Map 宣告。
+     - **端對端驗證**：透過瀏覽器 Console 呼叫 `POST /api/analyze`（`taipei_pm_notes`），驗證 Playwright 遇登入牆自動降級 Mock 資料、Gemini Structured Outputs 正常回傳 `200`、Supabase 寫入成功且 `npx tsc --noEmit` 零報錯。
+  5. **產出檔案**：
+     - `src/lib/analyzer/dataCleaner.ts`
+     - `src/lib/analyzer/nlpAnalyzer.ts`
+     - `src/app/api/analyze/route.ts`
+     - `reports/taipei_pm_notes_*.md`、`reports/taipei_pm_notes_*.json`（執行後自動產生）
