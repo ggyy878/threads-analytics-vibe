@@ -1,106 +1,183 @@
 # AI_LOG.md - Vibe Coding 開發日誌
 
-文件記錄本專案在 AI 協作 (Vibe Coding) 過程中的提示詞互動、架構演進、驗證方式與幻覺修正紀錄。
+本文件完整記錄 `threads-analytics-vibe` 專案從 **Phase 0 至 Phase 8** 的 AI 協作（Vibe Coding）歷程，包含向 AI 描述需求的方法、AI 產出的程式碼模組、正確性驗證流程、AI 錯誤與幻覺的修正紀錄，以及 AI 協作效益總結。
 
 ---
 
-## Checkpoint 0：專案初始化與規格定案
-- **日期**：2026-11-20
-- **記錄重點**：
-  1. **需求描述與拆解**：
-     - 與 AI 溝通考題要求（Threads 爬蟲、Supabase 認證與 RLS、NLP 分群成敗分析、多帳號比較、Docker 與 Vercel 部署）。
-     - 確立 35 個工作單位（17.5 小時）的時間評估與 3 帳戶輪替策略。
-  2. **規格釐清與決策**：
-     - 針對曝光數無法取得的問題，採 **Nullable 欄位並以總互動數替代** 的方案。
-     - 針對爬蟲不穩定性，確認 **Playwright + Fallback Mock Dataset** 雙軌並行機制。
-     - 確定 NLP 分析採 **LLM 結構化 Prompt 語意歸納**。
-  3. **產出檔案**：
-     - 建立 `PRD.md`、`README.md` 與 `AI_LOG.md`。
-     - 完成 Git 專案初始化與第一次 Commit。
+## 一、 分階段開發歷程（Phase 0 – Phase 8）
 
-
-## Checkpoint 1：Supabase Schema、RLS 與環境變數初始化（`feat/init-supabase`）
-- **開發重點與技術選型**：
-  1. **資料模型正規化（5 張核心表）**：
-     - 依 PRD 建立 `users`、`analysis_tasks`、`posts`、`aggregated_reports`，並額外拆分 `threads_accounts` 獨立管理追蹤帳號與快取有效期限（`last_scraped_at`、`cache_expires_at`），以支撐多帳號並排比較與帳號層級快取檢查。
-     - 採用自訂 PostgreSQL ENUM（`task_status`、`data_source_type`、`engagement_tier_type`）約束任務狀態、資料來源與三群組分類，減少應用程式層字串誤植風險。
-     - `posts.view_count` 設為 Nullable，並以 PostgreSQL Generated Column（`total_engagement`）自動彙算 `like + reply + repost + quote`，搭配降冪索引加速 Top Posts 排序查詢。
-  2. **安全性與資料隔離（RLS & Auth 同步）**：
-     - 5 張核心表全面啟用 Row Level Security（RLS），僅允許 `authenticated` 角色透過 `auth.uid() = user_id` 存取自身資料。
-     - 建立 `on_auth_user_created` Trigger（`SECURITY DEFINER` 並固定 `search_path = public`），在 Supabase Auth 註冊後自動寫入 `public.users`。
-  3. **快取、Fallback 與去重設計**：
-     - `analysis_tasks` 納入 `data_source`、`is_fallback_used`、`fallback_reason`、`cache_hit` 與 `cached_from_task_id`，完整記錄爬蟲切換 Mock 或命中快取的狀態。
-     - `posts` 透過 `(task_id, post_url)` 與部分唯一索引 `(task_id, external_post_id)` 確保單一任務內自動去重，並以 `TIMESTAMPTZ` 統一處理時區。
-  4. **除錯與防呆設計紀錄**：
-     - **防跨帳號外鍵越權寫入**：在 `analysis_tasks`、`posts`、`aggregated_reports` 的 `INSERT` RLS 政策中補上 `EXISTS` 檢查，防止惡意請求帶入他人 `account_id` 或 `task_id`。
-     - **Migration 冪等性與安全性**：ENUM 建立改用 `DO $$ ... IF NOT EXISTS` 區塊避免重複執行報錯；`handle_new_user()` 明確鎖定 `SET search_path = public` 以防範 Postgres `SECURITY DEFINER` search path 風險。
-     - *(若本地或 Supabase SQL Editor 執行 Migration 時有遇到其他報錯，可於合併前補充於此)*
-  5. **產出檔案**：
-     - `supabase/migrations/20261120000000_init_schema.sql`
-
-     ---
-
-## Checkpoint 2：使用者認證模組（Branch: `feat/auth`）
-- **記錄重點**：
-  1. **技術選型與架構設計**：
-     - 採用官方推薦套件 `@supabase/ssr` 與 `@supabase/supabase-js`，建立瀏覽器端（`src/utils/supabase/client.ts`）、伺服器端（`src/utils/supabase/server.ts`）與 Session 刷新邏輯（`src/utils/supabase/middleware.ts`）。
-     - 使用 Next.js Server Actions（`src/app/login/actions.ts`）處理 Email + Password 註冊、登入與登出流程，並將常見 Supabase 錯誤訊息轉譯為繁體中文提示。
-     - 新增 `/auth/callback`（`src/app/auth/callback/route.ts`）處理註冊信箱驗證後的 `exchangeCodeForSession`。
-     - 於路由層與 Server Component 層皆透過 `supabase.auth.getUser()` 進行雙重驗證，確保 Session 安全性。
-  2. **路由保護與 UI 實作**：
-     - 實作雙向路由保護：未登入訪問 `/dashboard` 自動導向 `/login`；已登入訪問 `/login` 自動導向 `/dashboard`。
-     - 建立登入/註冊切換介面（`src/app/login/page.tsx`）、登出按鈕元件（`src/components/SignOutButton.tsx`）與受保護的 `/dashboard` 基礎頁面（`src/app/dashboard/page.tsx`），包含 `useTransition` Loading 狀態。
-  3. **除錯與 Next.js 16 相容性修正紀錄**：
-     - **Middleware 命名變更**：專案使用 Next.js `16.4.6`，將傳統 `src/middleware.ts` 調整為新版規範 `src/proxy.ts`（匯出 `proxy` 函式），避免棄用警告。
-     - **解決 `Blocking Route` 預渲染錯誤**：`/dashboard` 執行時觸發 `Next.js encountered the unstable value Date.now() while prerendering`，主因為 `@supabase/ssr` 底層 `GoTrueClient` 在宣告動態請求前即呼叫 `Date.now()`。最終於 `src/app/dashboard/page.tsx` 導入 `next/server` 的 `await connection()` 並以 `<Suspense>` 包覆非同步內容，成功排除錯誤。
-
+### Phase 0：需求釐清、規格定案與專案初始化
+- **對應分支與 Commit**：`main`（`5a729ad` `chore(init): add PRD, README, and AI_LOG for Phase 0-1`）
+- **階段目標**：釐清考題規格與邊界條件、訂定 PRD-First 開發流程，完成專案初始化與三份基礎文件骨架。
+- **如何向 AI 描述需求**：
+  - 提供完整考題需求與時間限制，請 AI 協助拆解 35 個工作單位（每單位 30 分鐘）的執行計畫，並針對模糊需求（曝光數缺失、爬蟲防封鎖、多帳號比較）討論具體技術折衷方案。
+  - 明確約束開發節奏：前 6 階段專注本地開發與功能交付，第 7 階段再導入 Docker 容器化與部署設定。
+- **AI 產出內容**：初版 `PRD.md`、`README.md`、`AI_LOG.md` 與專案整體架構藍圖。
+- **關鍵技術決策**：
+  - 因 Threads 公開頁面無法穩定取得曝光數，決議 `view_count` 設為 Nullable，並以 `total_engagement`（讚＋回覆＋轉發＋引用）作為核心排序指標。
+  - 採用 **Playwright 真實爬取 + 本地高擬真 Mock Dataset 自動降級** 的雙軌架構。
+  - NLP 成敗分析採用 **LLM 結構化輸出（Structured Outputs）**，避免自由文字回應導致前端解析失敗。
+- **驗證方式**：人工逐項核對考題交付規範與 PRD 驗收條件，確認無遺漏核心需求後進行首次 Git Commit。
 
 ---
 
-## Checkpoint 3：Threads 爬蟲與 Mock Fallback 模組（Branch: `feat/threads-crawler`）
-- **記錄重點**：
-  1. **高擬真 Fallback Mock Dataset（`data/mock_threads_posts.json`）**：
-     - 建置 30 篇繁體中文 Threads 貼文樣本（高、中、低互動三群組各 10 篇，總互動數分布為 `635–1,588`、`141–286`、`13–48`），涵蓋不同發文時間、字數長度、問句互動、純文字／圖片／輪播標記及 `view_count: null` 案例。
-     - 欄位結構完全對齊 `public.posts` 資料表，並刻意排除資料庫自動計算之 `total_engagement` Generated Column。
-  2. **Playwright 爬蟲與工具模組（`src/lib/crawler/`）**：
-     - `types.ts` / `utils.ts`：定義對齊 `threads_accounts`、`analysis_tasks`、`posts` 的 TypeScript 介面與 `ThreadsCrawlerError`；實作帳號正規化（相容 `username`、`@username`、`threads.net` 與 `threads.com`）、文字特徵抽取、簡寫數字解析（`K`/`M`/`萬`）、隨機延遲、貼文去重與 `toSupabasePostInsertRows()` 轉換。
-     - `threadsScraper.ts`：採用動態 `import("playwright")` 啟動無頭 Chromium，攔截字型與影音請求加速載入；加入隨機滾動幅度與延遲防封鎖，並讀取 `PLAYWRIGHT_TIMEOUT_MS` 控管整體爬取逾時，同時偵測登入牆（`LOGIN_WALL`）、反爬蟲挑戰（`ANTI_BOT_BLOCKED`）與私人／不存在帳號（`ACCOUNT_NOT_FOUND`）。
-     - `index.ts`：實作自動降級封裝層 `crawlThreadsPosts()`；當 `ENABLE_MOCK_FALLBACK="true"` 時直接回傳 Mock 資料，設為 `"false"` 時則優先以 Playwright 爬取，遇任何阻擋或異常自動深拷貝並切換回傳 `data/mock_threads_posts.json`，同時回傳 `data_source`、`is_fallback_used`、`fallback_reason` 供寫入 `analysis_tasks`。
-     - `scripts/test-crawler.ts`：建立本地煙霧測試腳本，完成 Mock 模式與 Playwright 真實爬取／自動降級兩組情境驗證。
-  3. **除錯與相容性修正紀錄**：
-     - **Playwright 瀏覽器安裝指令修正**：執行 `npx exec playwright install chromium` 出現 `could not determine executable to run`，修正為 `npx playwright install chromium`。
-     - **PowerShell `@` 參數展開錯誤**：傳入 `@taipei_pm_notes`／`@zuck` 未加引號時被 PowerShell 誤判為 Splatting 變數展開，改以雙引號包覆（`"@zuck"`）解決。
-     - **強化錯誤降級型別判斷**：修復測試 B 觸發 `TypeError: Right-hand side of 'instanceof' is not an object` 問題，確保 `types.ts` 匯出 `ThreadsCrawlerError` 並於 `index.ts` 改以結構化守衛函式 `isCrawlerErrorLike()` 取代單純 `instanceof`，確保降級保護絕不中斷。
-     - **語法修復**：修正手動調整 `catch` 區塊時遺漏函式大括號導致的 esbuild `Unexpected "export"` 編譯錯誤。
-  4. **產出檔案**：
-     - `data/mock_threads_posts.json`
-     - `src/lib/crawler/types.ts`、`src/lib/crawler/utils.ts`、`src/lib/crawler/threadsScraper.ts`、`src/lib/crawler/index.ts`
-     - `scripts/test-crawler.ts`
+### Phase 1：Supabase 資料表結構、RLS 安全政策與環境變數範本
+- **對應分支與 Commit**：`feat/init-supabase`（`f15ff55`, `931087e`）
+- **階段目標**：設計正規化資料庫 Schema、建置嚴格 RLS 資料隔離與 Auth 使用者同步 Trigger。
+- **如何向 AI 描述需求**：
+  - 將 `PRD.md` 的資料流貼給 AI，要求設計具備「多帳號比較」、「帳號層級快取（TTL）」與「Fallback 稽核紀錄」的 PostgreSQL Migration SQL，並要求全表啟用 RLS 與防跨帳號越權寫入檢查。
+- **AI 產出程式碼**：
+  - `supabase/migrations/20261120000000_init_schema.sql`（5 張核心表：`users`、`threads_accounts`、`analysis_tasks`、`posts`、`aggregated_reports`；3 個自訂 ENUM；`total_engagement` Generated Column；`on_auth_user_created` Trigger；完整 RLS 政策）
+  - `.env.example` 環境變數範本
+- **如何驗證正確性**：
+  - 將 Migration SQL 實際貼入 Supabase Dashboard SQL Editor 執行，驗證資料表、索引、Generated Column、Trigger 與 RLS 政策皆成功建立且無語法報錯。
+- **修正 AI 的錯誤或安全補強**：
+  - **跨帳號外鍵越權防護**：檢查 AI 初版 RLS 政策時發現僅驗證 `auth.uid() = user_id`，主動要求於 `analysis_tasks`、`posts`、`aggregated_reports` 的 `INSERT` 政策補上 `EXISTS` 父層歸屬檢查，避免惡意請求帶入他人 `account_id` / `task_id`。
+  - **Migration 冪等性與 Security Definer 風險**：將 `CREATE TYPE` 改以 `DO $$ ... IF NOT EXISTS` 包覆避免重複執行報錯，並在 `handle_new_user()` 強制加上 `SET search_path = public`。
 
 ---
 
-## Checkpoint 4：資料清理、NLP 成敗分析與後端 API 整合（Branch: `feat/nlp-analysis`）
-- **日期**：2026-11-21
-- **記錄重點**：
-  1. **資料清理與特徵提取模組（`src/lib/analyzer/dataCleaner.ts`）**：
-     - 實作貼文去重邏輯（依 `external_post_id` 與正規化 `post_url` 判重，重複時優先保留互動數較高或內文較完整者）。
-     - 統一時間處理：寫入 Supabase `TIMESTAMPTZ` 維持 ISO 8601 UTC 格式，同時透過 `Intl.DateTimeFormat` 轉換為 `Asia/Taipei` 統計 24 小時、四時段（凌晨／上午／下午／晚間）與星期分布。
-     - 提取基礎文字與互動特徵：`char_count`、`hashtags`、`mentions`、`url_count`、`has_question`（問號與中文疑問詞偵測）、`has_media`、`media_type`、`reply_ratio`，以及互動率（優先採 `view_count`，若為 `null` 則自動改以 `follower_count` 計算），並彙算平均值、中位數與前端繪圖用 `chart_snapshots`。
-  2. **三群組分群與 Gemini Structured Outputs 分析模組（`src/lib/analyzer/nlpAnalyzer.ts`）**：
-     - 依 `total_engagement`（同分依 `reply_count`、`like_count` 次排序）自動劃分為高（`high`）、中（`medium`）、低（`low`）三群組，記錄 `high_tier_threshold` 與 `low_tier_threshold`，每組抽樣代表性貼文（預設 4 篇，上限 3–5 篇）並標記 `is_nlp_sample = true`。
-     - 安裝官方 `@google/genai` SDK，透過 `responseMimeType: 'application/json'` 與嚴格 `responseSchema`（Structured Outputs）產出繁體中文結構化分析：總覽摘要、高表現成功因素與 Hook 句型拆解（附佐證 `post_id`）、低表現成因、跨群組數據觀察、P0–P2 可執行策略建議（含示範 Hook），以及回寫至單篇貼文的 `nlp_post_insights`。
-  3. **後端整合 API 路由與報告輸出（`src/app/api/analyze/route.ts`）**：
-     - 透過 Supabase Server Client 執行 `supabase.auth.getUser()` 驗證登入狀態，未登入回傳 `401`。
-     - 實作帳號層級快取機制：檢查 `SCRAPER_CACHE_TTL_HOURS`（預設 24 小時）內是否已有 `completed` 分析報告，命中時直接回傳既有 `aggregated_reports` 與 `posts`，並於 `analysis_tasks` 補寫 `data_source = 'cache'`、`cache_hit = true` 之稽核紀錄（支援請求帶入 `force_refresh: true` 強制重跑）。
-     - 串接完整非同步分析管線：`crawlThreadsPosts`（含自動 Retry）→ 資料清理與分群 → Gemini NLP 分析 → 寫入 `posts`（避開 PostgreSQL `GENERATED ALWAYS` 之 `total_engagement` 欄位）與 `aggregated_reports` → 更新任務狀態（`scraping` → `analyzing` → `completed` / `failed`）→ 同步輸出 Markdown 與 JSON 報告至 `reports/` 資料夾（於唯讀 Serverless 環境自動降級略過不中斷主流程）。
-  4. **除錯、模型遷移與韌性強化紀錄**：
-     - **Supabase 模組路徑與 TypeScript 型別修正**：修正 AI 初版預設路徑 `@/lib/supabase/server` 為專案實際路徑 `@/utils/supabase/server`；修復報告 Markdown 樣板字串內未跳脫反引號（`` `high_tier_threshold` `` / `` `low_tier_threshold` ``）與 `activeTaskId`（`string | null`）型別收窄問題，改以區域常數 `taskId: string` 傳遞。
-     - **Phase 3 爬蟲模組對接修正**：初次測試回傳 `500`（找不到爬蟲匯出函式）；檢視 `src/lib/crawler/index.ts` 後改為靜態具名匯入 `crawlThreadsPosts(username, { targetPostCount })`，並清除替換過程殘留的舊版轉接程式碼。
-     - **Gemini 模型下線（`404 NOT_FOUND`）遷移**：原規劃呼叫 `gemini-2.5-flash`，實測時 Google API 回傳 `404`（新使用者已無法使用該模型）。依官方回應升級為 `gemini-3.8-flash`（支援 `.env.local` 設定 `GEMINI_MODEL` 覆寫），移除 Gemini 3.x 不建議傳入的 `temperature` 參數，並將 `NOT_FOUND` 列為不重試錯誤。
-     - **尖峰流量 `503 UNAVAILABLE` 與 Serverless 逾時防護**：實測遭遇模型尖峰壅塞 `503`，單一模型重試 3 次耗時達 `68s` 超過 `maxDuration = 60` 上限。後續重構為多模型自動降級鏈（`gemini-3.8-flash` → `gemini-3.6-flash` → `gemini-3.5-flash-lite`）、單次 `18s` 逾時保護（`withTimeout`）與最終統計規則降級兜底（`buildRuleBasedFallbackAnalysis`），並修復重構時遺漏的 `insightByPostId` Map 宣告。
-     - **端對端驗證**：透過瀏覽器 Console 呼叫 `POST /api/analyze`（`taipei_pm_notes`），驗證 Playwright 遇登入牆自動降級 Mock 資料、Gemini Structured Outputs 正常回傳 `200`、Supabase 寫入成功且 `npx tsc --noEmit` 零報錯。
-  5. **產出檔案**：
-     - `src/lib/analyzer/dataCleaner.ts`
-     - `src/lib/analyzer/nlpAnalyzer.ts`
-     - `src/app/api/analyze/route.ts`
-     - `reports/taipei_pm_notes_*.md`、`reports/taipei_pm_notes_*.json`（執行後自動產生）
+### Phase 2：使用者認證模組與 Next.js 16 路由保護
+- **對應分支與 Commit**：`feat/auth`（`f1d8941`, `85166b4`, `94c5543`）
+- **階段目標**：實作 Supabase Email/Password 登入、註冊、登出與 `/dashboard`、`/login` 雙向路由保護。
+- **如何向 AI 描述需求**：
+  - 指定採用 `@supabase/ssr` 與 Next.js 16 App Router Server Actions，要求拆分瀏覽器／伺服器端 Supabase Client，並要求於路由層與 Server Component 層皆透過 `getUser()` 驗證 Session，錯誤訊息轉為繁體中文。
+- **AI 產出程式碼**：
+  - `src/utils/supabase/client.ts`、`src/utils/supabase/server.ts`、`src/utils/supabase/middleware.ts`
+  - `src/proxy.ts`
+  - `src/app/login/page.tsx`、`src/app/login/actions.ts`、`src/app/auth/callback/route.ts`
+  - `src/components/SignOutButton.tsx`、`src/app/dashboard/page.tsx`
+- **如何驗證正確性**：
+  - 啟動 `npm run dev` 進行完整手動 E2E 測試：未登入直連 `/dashboard` 確認重導至 `/login` → 測試註冊與登入流程 → 已登入直連 `/login` 確認導回 `/dashboard` → 點擊登出驗證 Session 清除。
+- **修正 AI 的錯誤或幻覺**：
+  - **Next.js 16 規範幻覺（`middleware.ts` 棄用）**：AI 依舊版習慣產生 `src/middleware.ts`，但專案使用 Next.js `16.4.6` 已將入口規範改為 `src/proxy.ts`（匯出 `proxy` 函式）；實測發現警告後立即重構為 `src/proxy.ts`。
+  - **預渲染 `Blocking Route` 錯誤**：AI 產出的 `/dashboard` 在執行期觸發 `Next.js encountered the unstable value Date.now() while prerendering`（主因為 `@supabase/ssr` 底層 `GoTrueClient` 在宣告動態請求前呼叫 `Date.now()`）。經查錯後於 `src/app/dashboard/page.tsx` 導入 `next/server` 的 `await connection()` 並以 `<Suspense>` 包覆非同步內容成功解決。
+
+---
+
+### Phase 3：Threads Playwright 爬蟲與高擬真 Mock Fallback 模組
+- **對應分支與 Commit**：`feat/threads-crawler`（`d460da9`, `4d2b55a`）
+- **階段目標**：實作可穩定運作的 Threads 公開貼文爬蟲，並確保遭遇登入牆或反爬蟲時 100% 無縫降級至高擬真本地資料集。
+- **如何向 AI 描述需求**：
+  - 提供 `public.posts` 與 `analysis_tasks` 的欄位定義，要求 AI 先產出 30 篇繁體中文、具備高／中／低三群組差異且排除 `total_engagement` Generated Column 的 Mock Dataset；再設計具隨機延遲、資源攔截、超時控管與結構化錯誤降級的 Playwright 爬蟲模組。
+- **AI 產出程式碼**：
+  - `data/mock_threads_posts.json`（30 篇高／中／低互動貼文樣本，含 `view_count: null` 與多樣文字特徵）
+  - `src/lib/crawler/types.ts`、`src/lib/crawler/utils.ts`、`src/lib/crawler/threadsScraper.ts`、`src/lib/crawler/index.ts`
+- **如何驗證正確性**：
+  - 撰寫本地測試腳本，分別針對 `ENABLE_MOCK_FALLBACK="true"`（直接回傳 Mock）與 `ENABLE_MOCK_FALLBACK="false"`（實際以 Playwright 測試 `@taipei_pm_notes` 與 `@zuck`）執行驗證，確認遭遇登入牆時能正確觸發降級並回傳對應 `fallback_reason`。
+- **修正 AI 的錯誤或幻覺**：
+  - **安裝指令錯誤**：修正 `npx exec playwright install chromium` 為正確指令 `npx playwright install chromium`。
+  - **`instanceof` 跨模組判斷失效**：測試真實爬取降級時觸發 `TypeError: Right-hand side of 'instanceof' is not an object`；將 `index.ts` 中的錯誤攔截改為結構化型別守衛 `isCrawlerErrorLike()`，確保任何異常皆能安全降級。
+  - **PowerShell 語法踩雷**：Windows PowerShell 傳入 `@zuck` 時會誤判為 Splatting 展開，改以雙引號包覆（`"@zuck"`）解決；並補回手動編輯 `catch` 時遺漏的大括號編譯錯誤。
+
+---
+
+### Phase 4：資料清理、三群組 NLP 分析與後端 API 整合
+- **對應分支與 Commit**：`feat/nlp-analysis`（`9ff56df`）
+- **階段目標**：完成貼文去重、時區與文字特徵提取、三群組抽樣、Gemini Structured Outputs 語意分析與 `POST /api/analyze` 全流程串接。
+- **如何向 AI 描述需求**：
+  - 要求將清理與分析拆為純函式模組 `dataCleaner.ts` 與 `nlpAnalyzer.ts`，並明確指定 `Asia/Taipei` 時段統計、每組抽樣 3–5 篇貼文、`@google/genai` SDK 的嚴格 JSON Schema 輸出，以及 24 小時帳號快取檢查。
+- **AI 產出程式碼**：
+  - `src/lib/analyzer/dataCleaner.ts`
+  - `src/lib/analyzer/nlpAnalyzer.ts`
+  - `src/app/api/analyze/route.ts`
+  - 實際測試產出之本地報告驗證樣本：`reports/taipei_pm_notes_*.json/.md`、`reports/zuck_*.json/.md`、`reports/ai_builder_tw_*.json/.md`
+- **如何驗證正確性**：
+  - 執行 `npx tsc --noEmit` 確保零型別錯誤；透過瀏覽器 Console 帶入登入 Cookie 呼叫 `POST /api/analyze`，檢查 HTTP `200` 回傳結構、Supabase 五張表寫入紀錄、快取二次命中行為以及 `reports/` 產出檔內容。
+- **修正 AI 的錯誤或幻覺**：
+  - **匯入路徑幻覺**：AI 初版預設引入 `@/lib/supabase/server`，但專案實際路徑為 `@/utils/supabase/server`；另修正動態載入爬蟲模組導致 `500` 的錯誤，改為靜態具名匯入 `crawlThreadsPosts`。
+  - **Gemini 模型版本過時（`404 NOT_FOUND`）**：AI 原先寫死呼叫 `gemini-2.5-flash`，實測遭 Google API 回傳 `404`。升級為 **`gemini-3.8-flash`**（搭配 `LLM_MODEL` 環境變數）並移除 Gemini 3.x 不建議傳入的 `temperature` 參數。
+  - **尖峰 `503 UNAVAILABLE` 與逾時重構**：實測單一模型重試 3 次耗時 68 秒超過 Vercel 上限，遂要求重構為 **多模型自動降級鏈（`gemini-3.8-flash` → `gemini-3.6-flash` → `gemini-3.5-flash-lite`）＋單次 18 秒 `withTimeout`＋統計規則兜底（`buildRuleBasedFallbackAnalysis`）**，並修復重構過程中 AI 遺漏宣告 `insightByPostId` Map 與 Markdown 樣板反引號未跳脫的語法錯誤。
+
+---
+
+### Phase 5：前端數據儀表板、視覺化圖表與報表匯出
+- **對應分支與 Commit**：`feat/dashboard`（`a8bffae`）
+- **階段目標**：建置完整互動式儀表板 UI、歷史報告 API、Recharts 圖表與前端 CSV/JSON 匯出功能。
+- **如何向 AI 描述需求**：
+  - 提供 `/api/analyze` 與資料庫回傳的完整 TypeScript 型別結構，要求 AI 以模組化元件拆分 KPI 卡片、圖表、Top Posts 表格、AI 洞察面板與分析表單，並補齊 `GET /api/reports` 讓使用者重新整理頁面後仍可檢視歷史分析紀錄。
+- **AI 產出程式碼**：
+  - `src/app/api/reports/route.ts`
+  - `src/types/dashboard.ts`、`src/lib/normalize-report.ts`、`src/lib/export-report.ts`
+  - `src/components/dashboard/DashboardClient.tsx`、`AnalyzeForm.tsx`、`KpiCards.tsx`、`DashboardCharts.tsx`、`TopPostsTable.tsx`、`AiInsightsSection.tsx`
+- **如何驗證正確性**：
+  - 透過瀏覽器實測輸入帳號送出分析、切換歷史報告、檢視圖表 Tooltip 與 RWD 版面、點擊匯出按鈕檢查下載的 CSV（中文編碼無亂碼）與 JSON 結構是否完整。
+- **修正 AI 的錯誤或幻覺**：
+  - **TypeScript 與執行期屬性錯誤**：修正 `DashboardCharts.tsx` 中 Recharts `Tooltip` / `formatter` 的型別不相容問題、`AnalyzeForm.tsx` 狀態型別錯誤，以及 `DashboardClient.tsx` 讀取深層巢狀欄位未防呆導致的 Runtime TypeError（統一收斂至 `src/lib/normalize-report.ts` 做容錯標準化）。
+  - **SSR Hydration Mismatch**：修正伺服器端與瀏覽器端日期／數字語系格式化差異導致的 React Hydration 警告。
+
+---
+
+### Phase 6：多帳號並排比較、Mock 差異化與登入體驗強化
+- **對應分支與 Commit**：`feat/dashboard`（`a8bffae`）
+- **階段目標**：完成多帳號數據比較功能，並針對評審體驗優化 Mock 差異化數據與登入／註冊防呆。
+- **如何向 AI 描述需求**：
+  - 要求實作 `AccountComparison.tsx`，允許勾選 2 個以上已分析帳號並排比較 KPI 與圖表；同時指出「若所有帳號降級都回傳一模一樣的 Mock 數字，多帳號比較圖表會完全重疊」，要求依帳號名稱套用穩定的倍率差異。
+  - 要求於 `/login` 新增「評審測試帳號一鍵填入」按鈕（`demo@gmail.com` / `DemoPassword123!`），並於註冊流程阻擋 `@example.com` 等假網域。
+- **AI 產出程式碼**：
+  - `src/components/dashboard/AccountComparison.tsx`
+  - 更新 `src/lib/crawler/index.ts`（Mock 帳號倍率差異化）與 `src/app/login/page.tsx`、`src/app/login/actions.ts`
+- **如何驗證正確性**：
+  - 連續分析 3 個帳號（`taipei_pm_notes`、`zuck`、`ai_builder_tw`），於多帳號比較區勾選對比，確認數值與柱狀圖有明顯差異且可重複再現；測試註冊 `@example.com` 確認被前端／後端正確攔截，並實測測試帳號一鍵登入功能。
+- **修正 AI 的錯誤或幻覺**：
+  - 排查測試期間出現的 Supabase Schema 資料表查詢遺失錯誤，確認資料庫 Migration 狀態與環境變數指向同一 Supabase 專案，確保多帳號歷史紀錄能正確持久保存與讀取。
+
+---
+
+### Phase 7：單元測試、Docker 多階段建置與 Vercel 部署設定
+- **對應分支與 Commit**：`feat/docs-deployment`（`5001760`）
+- **階段目標**：補齊核心邏輯自動化單元測試，並交付可一鍵啟動的 `Dockerfile` 與 Vercel 超時設定檔 `vercel.json`。
+- **如何向 AI 描述需求**：
+  - 貼上專案實際的 `package.json`，請 AI 產出適用於 Next.js 16 + Playwright 的多階段 `Dockerfile`、`vercel.json`（將 `/api/analyze` 之 `maxDuration` 設為 `60`），以及針對資料清理與三群組分類的 Vitest 單元測試腳本。
+- **AI 產出程式碼**：
+  - `Dockerfile`（3-Stage Multi-stage build，安裝 Chromium 系統相依套件）
+  - `vercel.json`
+  - `src/__tests__/analyzer.test.ts`（2 個核心邏輯單元測試）並更新 `package.json` 的 `test` / `test:watch` 指令
+- **如何驗證正確性**：
+  - 執行 `npm test`（Vitest 5.1.1），2 項測試於 264ms 內全數通過（`1 passed / 2 passed`）。
+  - 執行 `npm run build` 通過 Next.js Turbopack 編譯與 TypeScript 型別檢查。
+  - 本機實際執行 `docker build` 與 `docker run` 驗證容器可正常打包與啟動。
+- **修正 AI 的錯誤或幻覺**：
+  - **Vitest 5 與 `@types/node` 版本衝突**：執行 `npm install -D vitest` 時因專案原鎖定 `@types/node@^20` 而觸發 `ERESOLVE` 衝突；依建議升級為 `npm install -D vitest @types/node@^22` 乾淨解決，避免使用 `--legacy-peer-deps` 影響 CI/Docker。
+  - **Docker Build 階段預渲染 `/login` 報錯**：因 `.dockerignore` 排除 `.env*`，`RUN npm run build` 預渲染 `/login` 時找不到 Supabase 公開金鑰；透過 `docker build --build-arg NEXT_PUBLIC_SUPABASE_URL=... --build-arg NEXT_PUBLIC_SUPABASE_ANON_KEY=...` 成功通過。
+  - **Node.js 20 棄用警告與環境變數檔名排查**：`@supabase/supabase-js` 提示 Node 20 將於未來版本棄用，隨即將 `Dockerfile` 基底映像由 `node:20-bookworm-slim` 升級至 `node:22-bookworm-slim`；並排查本機 `.env` 與 `.env.local` 檔名差異，順利完成容器啟動。
+
+---
+
+### Phase 8：文件同步校對與最終交付驗收
+- **對應分支**：`feat/docs-deployment` → 合併至 `main`
+- **階段目標**：全面對照實際程式碼、Git 紀錄、`.env.example` 與 `package.json`，同步更新最終版 `PRD.md`、`AI_LOG.md` 與 `README.md`，確保文件與程式碼 100% 一致。
+- **驗證方式**：逐條檢查考題交付規範（README 五大必備章節、AI_LOG 五項必要紀錄、測試帳號一致性、模型名稱 `gemini-3.8-flash` 與環境變數對齊），確認零矛盾後完成最終交付。
+
+---
+
+## 二、 AI 協作規範五項核心總結
+
+### 1. 我如何向 AI 描述需求
+- **PRD 先行與上下文鎖定**：先與 AI 確立 `PRD.md` 與資料庫 Schema，後續每個分支開發皆附上現有 `package.json`、資料表結構或相關檔案路徑，避免 AI 憑空猜測介面。
+- **單一分支、單一職責拆分**：依照 `init-supabase` → `auth` → `threads-crawler` → `nlp-analysis` → `dashboard` → `docs-deployment` 切分任務，每次只聚焦一個模組並明訂輸入／輸出型別與驗收標準。
+- **具體貼上錯誤日誌**：遇到報錯時不靠口頭轉述，而是直接貼上完整終端機堆疊訊息（如 `ERESOLVE`、Next.js prerender digest、`503 UNAVAILABLE`），大幅提升定位準確度。
+
+### 2. AI 幫我產生了哪些程式碼
+- **資料庫與認證**：`supabase/migrations/20261120000000_init_schema.sql`、`src/proxy.ts`、`src/utils/supabase/*`、`src/app/login/*`、`src/app/auth/callback/route.ts`。
+- **爬蟲與 Mock 資料**：`data/mock_threads_posts.json`、`src/lib/crawler/*`（Playwright 爬取、文字解析與自動降級封裝）。
+- **分析引擎與後端 API**：`src/lib/analyzer/dataCleaner.ts`、`src/lib/analyzer/nlpAnalyzer.ts`（Gemini 3.8 Flash Structured Outputs 與降級鏈）、`src/app/api/analyze/route.ts`、`src/app/api/reports/route.ts`。
+- **前端儀表板與匯出**：`src/components/dashboard/*`（7 個儀表板元件）、`src/types/dashboard.ts`、`src/lib/normalize-report.ts`、`src/lib/export-report.ts`。
+- **測試與部署**：`src/__tests__/analyzer.test.ts`、`Dockerfile`、`vercel.json`。
+
+### 3. 我如何驗證 AI 產出的正確性
+- **靜態型別與建置驗證**：每完成一個功能模組皆執行 `npx tsc --noEmit` 與 `npm run build`，確保無型別錯誤與 SSR 預渲染問題。
+- **自動化單元測試**：透過 Vitest 執行 `npm test`，驗證資料去重、負值防呆、Nullable 瀏覽數保留與三群組分類演算法邏輯。
+- **資料庫與 API 端對端驗證**：在 Supabase SQL Editor 實際跑通 Migration，並以真實登入 Session 呼叫 `/api/analyze` 與 `/api/reports`，檢查五張表資料寫入、RLS 隔離、快取命中與降級紀錄。
+- **容器與使用者流程實測**：本機執行 `docker build` / `docker run`，並以瀏覽器完整走訪「未登入攔截 → 測試帳號登入 → 單帳號分析 → 多帳號比較 → 匯出 CSV/JSON → 登出」流程。
+
+### 4. 我修正了哪些 AI 的錯誤或幻覺
+1. **框架版本幻覺**：修正 Next.js 16 沿用舊版 `middleware.ts` 的問題，改為 `src/proxy.ts`；並為 `/dashboard` 補上 `await connection()` 與 `<Suspense>` 解決 `Date.now()` 預渲染失敗。
+2. **過時 LLM 模型幻覺**：AI 初版預設呼叫已無法供新帳號使用的 `gemini-2.5-flash` 導致 `404`，實測後升級為 `gemini-3.8-flash` 並補建多模型降級鏈與規則引擎兜底。
+3. **路徑與語法失誤**：修正 AI 誤寫的 `@/lib/supabase/server` 路徑、重構時遺漏的 `insightByPostId` 變數、樣板字串未跳脫反引號，以及跨模組 `instanceof` 檢查失敗問題。
+4. **安全性與依賴補強**：在 RLS 寫入政策補齊父層外鍵 `EXISTS` 歸屬驗證；升級 `@types/node` 至 v22 與 Docker 基底映像至 `node:22-bookworm-slim` 以排除 Vitest 5 相依衝突與 Supabase Node 20 棄用警告。
+
+### 5. 哪些部分我認為 AI 幫助最大
+- **高複雜度樣板與架構起手式**：在 Supabase 5 表正規化 Schema、RLS 政策與 `@supabase/ssr` 前後端整合上，AI 快速產出高完整度骨架，節省大量查閱文件時間。
+- **結構化 Prompt 與資料處理邏輯**：快速建立 Gemini Structured Outputs 的嚴格 `responseSchema`、繁體中文高擬真 Mock Dataset 以及 Recharts 多維度圖表元件。
+- **錯誤日誌判讀與容錯重構**：面對 Next.js 16 預渲染錯誤、Playwright 登入牆降級與 Gemini 503 逾時保護時，AI 能迅速協助設計具備生產級韌性的降級鏈與除錯步驟。
