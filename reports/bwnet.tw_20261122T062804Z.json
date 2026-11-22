@@ -1,0 +1,425 @@
+{
+  "task_id": "1fc57bd8-767a-43cb-8487-fb45bd91082a",
+  "generated_at": "2026-11-22T06:28:04.260Z",
+  "data_source": "playwright",
+  "account": {
+    "username": "bwnet.tw",
+    "profile_url": "https://www.threads.net/@bwnet.tw",
+    "display_name": "bwnet.tw",
+    "bio": "6.0 萬位粉絲 • 239 則串文 • 發行量最大的財經雜誌，知識工作者最佳的學習夥伴。查看 @bwnet.tw 參與的最新對話。",
+    "follower_count": 60000
+  },
+  "metrics": {
+    "total_posts": 5,
+    "total_likes": 5534,
+    "total_replies": 80,
+    "total_reposts": 130,
+    "total_quotes": 24,
+    "total_engagement": 5768,
+    "avg_engagement": 1153.6,
+    "median_engagement": 3,
+    "avg_char_count": 191.6,
+    "duplicate_removed_count": 0
+  },
+  "chart_snapshots": {
+    "hourly_distribution": [
+      {
+        "hour": 0,
+        "label": "00:00",
+        "post_count": 0,
+        "avg_engagement": 0
+      },
+      {
+        "hour": 1,
+        "label": "01:00",
+        "post_count": 0,
+        "avg_engagement": 0
+      },
+      {
+        "hour": 2,
+        "label": "02:00",
+        "post_count": 0,
+        "avg_engagement": 0
+      },
+      {
+        "hour": 3,
+        "label": "03:00",
+        "post_count": 0,
+        "avg_engagement": 0
+      },
+      {
+        "hour": 4,
+        "label": "04:00",
+        "post_count": 0,
+        "avg_engagement": 0
+      },
+      {
+        "hour": 5,
+        "label": "05:00",
+        "post_count": 0,
+        "avg_engagement": 0
+      },
+      {
+        "hour": 6,
+        "label": "06:00",
+        "post_count": 0,
+        "avg_engagement": 0
+      },
+      {
+        "hour": 7,
+        "label": "07:00",
+        "post_count": 0,
+        "avg_engagement": 0
+      },
+      {
+        "hour": 8,
+        "label": "08:00",
+        "post_count": 0,
+        "avg_engagement": 0
+      },
+      {
+        "hour": 9,
+        "label": "09:00",
+        "post_count": 0,
+        "avg_engagement": 0
+      },
+      {
+        "hour": 10,
+        "label": "10:00",
+        "post_count": 0,
+        "avg_engagement": 0
+      },
+      {
+        "hour": 11,
+        "label": "11:00",
+        "post_count": 0,
+        "avg_engagement": 0
+      },
+      {
+        "hour": 12,
+        "label": "12:00",
+        "post_count": 1,
+        "avg_engagement": 2
+      },
+      {
+        "hour": 13,
+        "label": "13:00",
+        "post_count": 0,
+        "avg_engagement": 0
+      },
+      {
+        "hour": 14,
+        "label": "14:00",
+        "post_count": 0,
+        "avg_engagement": 0
+      },
+      {
+        "hour": 15,
+        "label": "15:00",
+        "post_count": 0,
+        "avg_engagement": 0
+      },
+      {
+        "hour": 16,
+        "label": "16:00",
+        "post_count": 0,
+        "avg_engagement": 0
+      },
+      {
+        "hour": 17,
+        "label": "17:00",
+        "post_count": 1,
+        "avg_engagement": 618
+      },
+      {
+        "hour": 18,
+        "label": "18:00",
+        "post_count": 1,
+        "avg_engagement": 5145
+      },
+      {
+        "hour": 19,
+        "label": "19:00",
+        "post_count": 2,
+        "avg_engagement": 1.5
+      },
+      {
+        "hour": 20,
+        "label": "20:00",
+        "post_count": 0,
+        "avg_engagement": 0
+      },
+      {
+        "hour": 21,
+        "label": "21:00",
+        "post_count": 0,
+        "avg_engagement": 0
+      },
+      {
+        "hour": 22,
+        "label": "22:00",
+        "post_count": 0,
+        "avg_engagement": 0
+      },
+      {
+        "hour": 23,
+        "label": "23:00",
+        "post_count": 0,
+        "avg_engagement": 0
+      }
+    ],
+    "time_slot_distribution": [
+      {
+        "slot": "凌晨 (00-05)",
+        "post_count": 0,
+        "avg_engagement": 0
+      },
+      {
+        "slot": "上午 (06-11)",
+        "post_count": 0,
+        "avg_engagement": 0
+      },
+      {
+        "slot": "下午 (12-17)",
+        "post_count": 2,
+        "avg_engagement": 310
+      },
+      {
+        "slot": "晚間 (18-23)",
+        "post_count": 3,
+        "avg_engagement": 1716
+      }
+    ],
+    "weekday_distribution": [
+      {
+        "weekday": "週一",
+        "post_count": 2,
+        "avg_engagement": 2881.5
+      },
+      {
+        "weekday": "週二",
+        "post_count": 0,
+        "avg_engagement": 0
+      },
+      {
+        "weekday": "週三",
+        "post_count": 0,
+        "avg_engagement": 0
+      },
+      {
+        "weekday": "週四",
+        "post_count": 0,
+        "avg_engagement": 0
+      },
+      {
+        "weekday": "週五",
+        "post_count": 0,
+        "avg_engagement": 0
+      },
+      {
+        "weekday": "週六",
+        "post_count": 2,
+        "avg_engagement": 1.5
+      },
+      {
+        "weekday": "週日",
+        "post_count": 1,
+        "avg_engagement": 2
+      }
+    ],
+    "feature_comparison": {
+      "with_question": {
+        "count": 3,
+        "avg_engagement": 1716.67
+      },
+      "without_question": {
+        "count": 2,
+        "avg_engagement": 309
+      },
+      "with_media": {
+        "count": 4,
+        "avg_engagement": 1442
+      },
+      "text_only": {
+        "count": 1,
+        "avg_engagement": 0
+      }
+    },
+    "length_buckets": [
+      {
+        "bucket": "短文 (≤50字)",
+        "post_count": 0,
+        "avg_engagement": 0
+      },
+      {
+        "bucket": "中短文 (51-120字)",
+        "post_count": 2,
+        "avg_engagement": 1.5
+      },
+      {
+        "bucket": "中長文 (121-250字)",
+        "post_count": 2,
+        "avg_engagement": 2573.5
+      },
+      {
+        "bucket": "長文 (>250字)",
+        "post_count": 1,
+        "avg_engagement": 618
+      }
+    ]
+  },
+  "high_tier_threshold": 5145,
+  "low_tier_threshold": 0,
+  "tier_summary": {
+    "high": {
+      "tier": "high",
+      "label": "高表現 (Top)",
+      "count": 1,
+      "percentage": 20,
+      "min_engagement": 5145,
+      "max_engagement": 5145,
+      "avg_engagement": 5145,
+      "median_engagement": 5145,
+      "avg_likes": 4939,
+      "avg_replies": 72,
+      "avg_reposts": 115,
+      "avg_quotes": 19,
+      "avg_char_count": 234,
+      "question_rate": 100,
+      "media_rate": 100,
+      "avg_engagement_rate": 8.58,
+      "sample_post_ids": [
+        "DfzHtU2IEit"
+      ]
+    },
+    "medium": {
+      "tier": "medium",
+      "label": "中表現 (Mid)",
+      "count": 3,
+      "percentage": 60,
+      "min_engagement": 2,
+      "max_engagement": 618,
+      "avg_engagement": 207.67,
+      "median_engagement": 3,
+      "avg_likes": 198.33,
+      "avg_replies": 2.67,
+      "avg_reposts": 5,
+      "avg_quotes": 1.67,
+      "avg_char_count": 223,
+      "question_rate": 66.7,
+      "media_rate": 100,
+      "avg_engagement_rate": 0.35,
+      "sample_post_ids": [
+        "Dfy_Y9JjNjS",
+        "DgAII_xgO6s",
+        "Dfv34QDCckS"
+      ]
+    },
+    "low": {
+      "tier": "low",
+      "label": "低表現 (Low)",
+      "count": 1,
+      "percentage": 20,
+      "min_engagement": 0,
+      "max_engagement": 0,
+      "avg_engagement": 0,
+      "median_engagement": 0,
+      "avg_likes": 0,
+      "avg_replies": 0,
+      "avg_reposts": 0,
+      "avg_quotes": 0,
+      "avg_char_count": 55,
+      "question_rate": 0,
+      "media_rate": 0,
+      "avg_engagement_rate": 0,
+      "sample_post_ids": [
+        "DgAIKOegIEO"
+      ]
+    }
+  },
+  "executive_summary": "bwnet.tw 作為發行量最大的財經雜誌帳號，其內容表現呈現極端落差。高表現貼文主要仰賴重大財經熱點、現場實拍圖片與強烈參與感問句，單篇互動高達 5,145；相對地，缺乏多媒體與情境鋪陳的純文字導流貼文則完全失靈，互動歸零。帳號應善用其新聞敏銳度與視覺素材，並增加互動誘因，以縮小爆款與低迷貼文間的巨大鴻溝。",
+  "success_factors": [
+    {
+      "title": "重大財經熱點即時跟進與現場實拍",
+      "description": "精準捕捉黃仁勳與台北101點燈話題，並搭配現場攝影照片，提供獨家且具臨場感的視覺內容，極大化觸及與群眾共鳴，帶動高達 4,939 個讚與 115 次轉發。",
+      "hook_pattern": "名人姓名 + 【吸睛事件快訊】",
+      "evidence_post_ids": [
+        "DfzHtU2IEit"
+      ],
+      "impact_level": "high"
+    },
+    {
+      "title": "具體且帶有行動呼籲 (CTA) 的互動問句",
+      "description": "在高表現貼文中直接詢問受眾「今晚你也拍到台北101點燈了嗎？歡迎在留言區分享照片」，有效降低用戶回覆門檻，促使回覆數衝高至 72 則。",
+      "hook_pattern": "事件事實描述 + 現場互動問句",
+      "evidence_post_ids": [
+        "DfzHtU2IEit"
+      ],
+      "impact_level": "high"
+    }
+  ],
+  "failure_factors": [
+    {
+      "title": "缺乏多媒體與情境鋪陳的純文字導流",
+      "description": "低表現貼文僅有短短 55 字並附帶外部連結，無圖片且未交代心理測驗的背景價值，無法引起受眾好奇，導致互動率直接歸零。",
+      "evidence_post_ids": [
+        "DgAIKOegIEO"
+      ],
+      "impact_level": "high"
+    },
+    {
+      "title": "行銷導向過強卻缺乏內容引子",
+      "description": "部分心理測驗推廣貼文（如 DgAII_xgO6s 與 Dfv34QDCckS）雖然包含問句，但因過早導向外部連結且未在內文中提供足夠的情緒價值或痛點共鳴，導致中表現群組的整體互動率僅有 0.35%。",
+      "evidence_post_ids": [
+        "DgAII_xgO6s",
+        "Dfv34QDCckS"
+      ],
+      "impact_level": "medium"
+    }
+  ],
+  "content_observations": [
+    {
+      "dimension": "字數與排版結構",
+      "finding": "高與中表現貼文平均字數落在 223 至 234 字，具備完整的主題脈絡與段落分明；而低表現貼文僅 55 字，過於單薄無法留住視線。",
+      "metric_evidence": "高表現平均字數 234 字，低表現平均字數 55 字。"
+    },
+    {
+      "dimension": "問句引導與互動率",
+      "finding": "附帶明確且具體問句的貼文互動表現遠高於無問句貼文，顯示 Threads 用戶偏好能直接發表觀點或分享照片的互動情境。",
+      "metric_evidence": "有問句貼文平均互動數 1716.67，無問句貼文平均互動數 309。"
+    },
+    {
+      "dimension": "多媒體搭配",
+      "finding": "圖片搭配是驅動互動的必要條件，圖文並茂的貼文平均互動遠超越純文字貼文。",
+      "metric_evidence": "有媒體貼文平均互動 1442，純文字貼文平均互動 0。"
+    },
+    {
+      "dimension": "發文時段",
+      "finding": "晚間 (18-23) 時段的貼文平均互動數高達 1716，顯著優於下午時段，符合知識工作者下班後的瀏覽習慣。",
+      "metric_evidence": "晚間時段平均互動 1716，下午時段平均互動 310。"
+    }
+  ],
+  "ai_recommendations": [
+    {
+      "priority": "P0",
+      "title": "嚴格禁止無圖純文字導流，強化外部連結的預告價值",
+      "action_steps": [
+        "取消所有僅發布短文字加連結的貼文形式。",
+        "推廣心理測驗或文章時，必須擷取測驗中的金句或精華作為圖片素材。",
+        "將連結放在留言區，內文專注於創造共鳴。"
+      ],
+      "example_hook": "每次做完這個測驗都覺得太準...你是哪一種城市生存動物？",
+      "expected_impact": "提升低迷貼文的曝光率與點擊互動率，擺脫零互動窘境。"
+    },
+    {
+      "priority": "P1",
+      "title": "結合財經時事與社群互動問句",
+      "action_steps": [
+        "維持高水準的財經熱點追蹤速度，並於每篇貼文結尾設計低門檻的討論問題。",
+        "善用圖片或現場畫面作為視覺第一印象。"
+      ],
+      "example_hook": "輝達執行長黃仁勳再度成為話題中心！如果由你來決定，台灣科技業下一步該...？",
+      "expected_impact": "維持高表現貼文的 8% 以上高互動率，並拉高整體帳號的留言與轉發數。"
+    }
+  ]
+}
