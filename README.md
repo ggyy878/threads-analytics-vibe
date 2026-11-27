@@ -1,6 +1,6 @@
 # Threads 帳號貼文爬取與數據分析工具
 
-基於 **Next.js 16**、**Supabase**、**Playwright** 與 **Gemini 3.8 Flash** 的 Threads 帳號貼文爬取與數據分析儀表板，支援公開帳號／URL 貼文抓取（近期至少 30 篇）、資料清理、互動三群組（高／中／低）分類、LLM 語意成敗歸因、多帳號比較與 CSV / JSON 匯出。
+基於 **Next.js 16**、**Supabase**、**Playwright** 與 **Gemini 3.8 Flash** 的 Threads 帳號貼文爬取與數據分析儀表板，支援公開帳號貼文抓取（近期至少 10 篇內）、資料清理、互動三群組（高／中／低）分類、LLM 語意成敗歸因、多帳號比較與 CSV / JSON 匯出。
 
 ## 技術棧
 
